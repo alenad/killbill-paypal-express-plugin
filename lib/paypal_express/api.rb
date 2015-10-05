@@ -125,21 +125,27 @@ module Killbill #:nodoc:
         token = find_value_from_properties(properties, 'token')
         # token is passed from the json body
         token = find_value_from_properties(payment_method_props.properties, 'token') if token.nil?
-        raise 'No token specified!' if token.nil?
 
-        # Go to Paypal to get the Payer id (GetExpressCheckoutDetails call)
-        options                      = properties_to_hash(properties)
-        payment_processor_account_id = options[:payment_processor_account_id] || :default
-        gateway                      = lookup_gateway(payment_processor_account_id, context.tenant_id)
-        gw_response                  = gateway.details_for(token)
-        response, transaction        = save_response_and_transaction(gw_response, :details_for, kb_account_id, context.tenant_id, payment_processor_account_id)
-        raise response.message unless response.success? and !response.payer_id.blank?
+        unless token.nil?
+          # Go to Paypal to get the Payer id (GetExpressCheckoutDetails call)
+          options                      = properties_to_hash(properties)
+          payment_processor_account_id = options[:payment_processor_account_id] || :default
+          gateway                      = lookup_gateway(payment_processor_account_id, context.tenant_id)
+          gw_response                  = gateway.details_for(token)
+          response, transaction        = save_response_and_transaction(gw_response, :details_for, kb_account_id, context.tenant_id, payment_processor_account_id)
+          raise response.message unless response.success? and !response.payer_id.blank?
 
-        # Pass extra parameters for the gateway here
-        options = {
-            :paypal_express_token    => token,
-            :paypal_express_payer_id => response.payer_id
-        }
+          # Pass extra parameters for the gateway here
+          options = {
+              :paypal_express_token    => token,
+              :paypal_express_payer_id => response.payer_id
+          }
+        else
+          # HPP flow
+          options = {
+              :skip_gw => true
+          }
+        end
 
         properties = merge_properties(properties, options)
         super(kb_account_id, kb_payment_method_id, payment_method_props, set_default, properties, context)
