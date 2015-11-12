@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    killbill-paypal-express (3.0.0)
+    killbill-paypal-express (3.1.0)
       actionpack (~> 4.1.0)
       actionview (~> 4.1.0)
       activemerchant (~> 1.53.0)
@@ -74,7 +74,7 @@ GEM
       typhoeus (~> 0.6.9)
       tzinfo (~> 1.2.0)
     maven-tools (0.32.5)
-    minitest (5.8.0)
+    minitest (5.8.1)
     monetize (1.1.0)
       money (~> 6.5.0)
     money (6.5.1)
