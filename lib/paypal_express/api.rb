@@ -258,6 +258,10 @@ module Killbill #:nodoc:
         if create_pending_payment
           custom_props = hash_to_properties(:from_hpp => true,
                                             :token    => token)
+          external_key = Killbill::Plugin::ActiveMerchant::Utils.normalized(properties_hash, :payment_external_key) ||
+                         Killbill::Plugin::ActiveMerchant::Utils.normalized(form_fields, :payment_external_key)
+          transaction_external_key = Killbill::Plugin::ActiveMerchant::Utils.normalized(properties_hash, :payment_transaction_external_key) ||
+                                     Killbill::Plugin::ActiveMerchant::Utils.normalized(form_fields, :payment_transaction_external_key)
 
           payment = @kb_apis.payment_api
                             .create_purchase(kb_account,
@@ -265,8 +269,8 @@ module Killbill #:nodoc:
                                              nil,
                                              amount,
                                              currency,
-                                             properties_hash[:payment_external_key],
-                                             properties_hash[:payment_transaction_external_key],
+                                             external_key,
+                                             transaction_external_key,
                                              custom_props,
                                              context)
           descriptor.properties << build_property('kb_payment_id', payment.id)
