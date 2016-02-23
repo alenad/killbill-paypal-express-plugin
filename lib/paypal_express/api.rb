@@ -62,21 +62,38 @@ module Killbill #:nodoc:
         if find_value_from_properties(properties, 'from_hpp') == 'true'
           options[:token] = find_value_from_properties(properties, 'token')
 
-          response = @response_model.create(:api_call                     => :build_form_descriptor,
-                                            :kb_account_id                => kb_account_id,
-                                            :kb_payment_id                => kb_payment_id,
-                                            :kb_payment_transaction_id    => kb_payment_transaction_id,
-                                            :transaction_type             => :PURCHASE,
-                                            :authorization                => options[:token],
-                                            :payment_processor_account_id => nil,
-                                            :kb_tenant_id                 => context.tenant_id,
-                                            :success                      => true,
-                                            :created_at                   => Time.now.utc,
-                                            :updated_at                   => Time.now.utc,
-                                            :message                      => { :payment_plugin_status => :PENDING }.to_json)
-          transaction          = response.to_transaction_info_plugin(nil)
-          transaction.amount   = amount
-          transaction.currency = currency
+          response = @response_model.create(
+            :api_call                     => :build_form_descriptor,
+            :kb_account_id                => kb_account_id,
+            :kb_payment_id                => kb_payment_id,
+            :kb_payment_transaction_id    => kb_payment_transaction_id,
+            :transaction_type             => :PURCHASE,
+            :authorization                => options[:token],
+            :payment_processor_account_id => nil,
+            :kb_tenant_id                 => context.tenant_id,
+            :success                      => true,
+            :created_at                   => Time.now.utc,
+            :updated_at                   => Time.now.utc,
+            # :message                      => { :payment_plugin_status => :PENDING }.to_json
+          )
+          paypal_transaction = response.create_paypal_express_transaction(
+            :kb_account_id                => response.kb_account_id,
+            :kb_tenant_id                 => response.kb_tenant_id,
+            :amount_in_cents              => amount,
+            :currency                     => currency,
+            :api_call                     => :purchase,
+            :kb_payment_id                => kb_payment_id,
+            :kb_payment_transaction_id    => kb_payment_transaction_id,
+            :transaction_type             => response.transaction_type,
+            :payment_processor_account_id => response.payment_processor_account_id,
+            :txn_id                       => response.txn_id,
+            :paypal_express_response_id   => response.id,
+            :created_at                   => response.created_at,
+            :updated_at                   => response.updated_at
+          )
+
+          transaction        = response.to_transaction_info_plugin(paypal_transaction)
+          transaction.status = :PENDING
           transaction
         else
           add_required_options(kb_payment_transaction_id, kb_payment_method_id, context, options)
