@@ -113,4 +113,6 @@ CREATE TABLE `paypal_express_responses` (
   `kb_account_id` varchar(255) DEFAULT NULL,
   `kb_tenant_id` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
+  KEY `idx_paypal_express_responses_on_kb_account_id` (`kb_account_id`),
+  KEY `idx_paypal_express_responses_on_payer_email` (`payer_email`)
 ) ENGINE=InnoDB CHARACTER SET utf8 COLLATE utf8_bin;

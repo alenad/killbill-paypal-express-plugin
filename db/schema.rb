@@ -114,4 +114,7 @@ ActiveRecord::Schema.define(:version => 20151008153635) do
     t.string   "kb_account_id"
     t.string   "kb_tenant_id"
   end
+
+  add_index(:paypal_express_responses, :kb_account_id, :name => 'idx_paypal_express_responses_on_kb_account_id')
+  add_index(:paypal_express_responses, :payer_email, :name => 'idx_paypal_express_responses_on_payer_email')
 end
